@@ -59,7 +59,6 @@ def write_round(run: DJNRun, round_payload: Dict[str, Any]) -> DJNRound:
     r.latency_ms = round_payload.get("latency_ms")
     r.save()
 
-    # upsert juror responses
     for o in (round_payload.get("outputs") or []):
         juror_id = o.get("juror_id", "")
         jr, _ = JurorResponse.objects.get_or_create(round=r, juror_id=juror_id)
