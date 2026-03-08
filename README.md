@@ -289,7 +289,7 @@ Project/
 ├── requirements.txt
 │
 ├── djn_db/
-│   ├── __ __ __init__ __ __.py
+│   ├── __init__.py
 │   ├── admin.py
 │   ├── apps.py
 │   ├── db_writer.py
@@ -297,16 +297,16 @@ Project/
 │   ├── selector.py
 │   ├── stats.py
 │   ├── management/
-│   │   ├── __ __ __init__ __ __.py
+│   │   ├── __init__.py
 │   │   └── commands/
-│   │       ├── __ __ __init__ __ __.py
+│   │       ├── __init__.py
 │   │       └── seed_llmpool.py
 │   └── migrations/
-│       ├── __ __ __init__ __ __.py
+│       ├── __init__.py
 │       └── 0001_initial.py
 │
 ├── djn_engine/
-│   ├── __ __ __init__ __ __.py
+│   ├── __init__.py
 │   ├── json_enforce.py
 │   ├── llms.py
 │   ├── logger.py
@@ -315,7 +315,7 @@ Project/
 │   └── schemas.py
 │
 ├── djn_site/
-│   ├── __ __init__ __.py
+│   ├── __init__.py
 │   ├── asgi.py
 │   ├── settings.py
 │   ├── urls.py
@@ -339,13 +339,13 @@ Project/
 │   └── djn_runs.jsonl
 │
 └── webapp/
-    ├── __ __init__ __.py
+    ├── __init__.py
     ├── admin.py
     ├── apps.py
     ├── urls.py
     ├── views.py
     ├── migrations/
-    │   └── __ __init__ __.py
+    │   └── __init__.py
     ├── static/
     │   └── webapp/
     │       └── css/
@@ -358,7 +358,7 @@ Project/
     │       ├── home.html
     │       └── jury_discussion.html
     └── templatetags/
-        ├── __ __init__ __.py
+        ├── __init__.py
         └── djn_extras.py
 
 ---
