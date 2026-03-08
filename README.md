@@ -280,8 +280,8 @@ These logs allow debugging and analysis of the reasoning process.
 ---
 
 # Project Structure
-
-Project/
+```text
+Dynamic-Jury-Network/
 ├── .env.example
 ├── .gitignore
 ├── credentials.json        # Create this from your Google Cloud Console
@@ -360,7 +360,7 @@ Project/
     └── templatetags/
         ├── __init__.py
         └── djn_extras.py
-
+```
 ---
 
 # Key Features
