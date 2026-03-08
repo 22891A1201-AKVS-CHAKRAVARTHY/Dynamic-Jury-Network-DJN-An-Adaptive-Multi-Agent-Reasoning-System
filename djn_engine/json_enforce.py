@@ -13,26 +13,21 @@ _JSON_BLOCK = re.compile(r"\{.*\}", re.DOTALL)
 
 def _extract_json(text: str) -> str:
     text = (text or "").strip()
-    # If the model wrapped JSON in extra text, yank the first {...} block.
     m = _JSON_BLOCK.search(text)
     return m.group(0).strip() if m else text
 
 def parse_strict(model: Type[T], raw: str) -> T:
     raw = _extract_json(raw)
-    data = json.loads(raw)  # strict json
+    data = json.loads(raw)  
     return model.model_validate(data)
 
 def repair_json_minimal(raw: str) -> Optional[str]:
-    """
-    Minimal 'repair': extract {...}, strip code fences, remove trailing commas.
-    We do NOT do fancy hallucination fixes. If it's broken beyond this → retry the juror.
-    """
+
     if not raw:
         return None
     s = raw.strip()
     s = s.replace("```json", "").replace("```", "").strip()
     s = _extract_json(s)
-    # remove trailing commas like {"a":1,}
     s = re.sub(r",(\s*[}\]])", r"\1", s)
     return s
 

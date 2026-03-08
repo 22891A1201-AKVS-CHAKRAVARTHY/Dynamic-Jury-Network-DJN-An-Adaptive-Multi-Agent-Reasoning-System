@@ -12,7 +12,6 @@ def _norm_label(s: str) -> str:
     s = (s or "").strip().upper().replace(" ", "_")
     s = "".join(ch for ch in s if ch.isalnum() or ch == "_")[:64] or "UNKNOWN"
 
-    # Map common synonyms -> tight set (v1)
     POS = {"YES", "APPROVE", "RECOMMEND", "RECOMMENDED", "GO", "GO_AHEAD", "DO_IT", "AGREE", "SUPPORT"}
     NEG = {"NO", "REJECT", "AVOID", "DISAGREE", "OPPOSE"}
     COND = {"CONDITIONAL", "DEPENDS", "MAYBE", "PARTIAL", "MIXED", "QUALIFIED", "YES_BUT", "CONDITIONAL_YES"}
@@ -26,8 +25,7 @@ def _norm_label(s: str) -> str:
         return "CONDITIONAL"
     if s in UNK:
         return "UNKNOWN"
-    return s  # fallback
-
+    return s  
 
 class ModeratorOut(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -57,7 +55,6 @@ class JurorOut(BaseModel):
     @field_validator("tldr")
     @classmethod
     def tldr_cap(cls, v: str) -> str:
-        # Keep it tight; your prompt pack says <= ~90 words
         v = (v or "").strip()
         words = v.split()
         return " ".join(words[:90])
@@ -82,7 +79,7 @@ class JudgeOut(BaseModel):
 
     final_recommendation: str = Field(min_length=40, max_length=1200)
     why: list[str] = Field(min_length=2, max_length=6)
-    confidence: str  # "HIGH"|"MEDIUM"|"LOW"
+    confidence: str  
     common_ground: list[str] = Field(default_factory=list, max_length=8)
     main_disagreement: list[str] = Field(default_factory=list, max_length=6)
     conditional_guidance: list[str] = Field(default_factory=list, max_length=8)

@@ -28,8 +28,7 @@ def _score_model(model_row: LLMPool, category: str) -> float:
     acc = float(getattr(stat, "user_acceptance_rate", 0.0) or 0.0)
     lat = float(getattr(stat, "avg_latency_ms", 0.0) or 0.0)
 
-    # higher better: acceptance, lower latency
-    latency_bonus = 0.0 if lat <= 0 else max(0.0, 2000.0 - lat) / 2000.0  # 0..1
+    latency_bonus = 0.0 if lat <= 0 else max(0.0, 2000.0 - lat) / 2000.0  
     return (acc * 2.0) + (latency_bonus * 0.5) + random.random() * 0.05
 
 

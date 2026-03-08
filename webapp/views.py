@@ -36,15 +36,12 @@ GDOCS_STATE_KEY = "gdocs_oauth_state"
 GDOCS_LAST_URL_KEY = "gdocs_last_url"
 GDOCS_PENDING_QUERY_KEY = "gdocs_pending_query"
 
-# Clarification workflow storage
 PENDING_QUERY_KEY = "djn_pending_query"
 CLARIFY_QS_KEY = "djn_clarify_qs"
 CLARIFY_A_KEY = "djn_clarify_ans"
 
-# user can skip clarifications -> force LOW confidence
 FORCE_LOW_CONF_KEY = "djn_force_low_conf"
 
-# store last run_id so 👍👎 buttons survive redirect
 LAST_RUN_ID_KEY = "djn_last_run_id"
 LAST_FINAL_IDX_KEY = "djn_last_final_idx"  
 
@@ -106,13 +103,12 @@ def _build_docs_requests_from_text(text: str):
     """
     text = (text or "").replace("\r\n", "\n").strip() + "\n"
 
-    # Build line table with absolute indices (Google Docs index starts at 1)
     lines = text.split("\n")
     starts = []
     idx = 1
     for ln in lines:
         starts.append(idx)
-        idx += len(ln) + 1  # + newline
+        idx += len(ln) + 1
 
     requests = [
         {"insertText": {"location": {"index": 1}, "text": text}}
@@ -131,14 +127,12 @@ def _build_docs_requests_from_text(text: str):
             }
         })
 
-    # Track bullet/numbered blocks as ranges to apply in batches
     bullet_blocks = []
     number_blocks = []
 
     def _is_bullet(ln): return ln.startswith("- ") or ln.startswith("* ")
     def _is_number(ln): return bool(re.match(r"^\d+\.\s+", ln))
 
-    # Normalize headings + detect list blocks
     for i, ln in enumerate(lines):
         if ln.startswith("### "):
             _set_heading(i, "HEADING_3")
@@ -173,7 +167,6 @@ def _build_docs_requests_from_text(text: str):
 
         i += 1
 
-    # Apply bullets/numbering
     for s, e in bullet_blocks:
         requests.append({
             "createParagraphBullets": {
@@ -190,9 +183,6 @@ def _build_docs_requests_from_text(text: str):
             }
         })
 
-    # Clean up markdown markers visually (optional but nice):
-    # Remove heading tokens "# ", "## ", "### ", and list markers "- ", "* ", "1. "
-    # We'll do it via replaceAllText to avoid index headaches.
     requests.append({
         "replaceAllText": {
             "containsText": {"text": "### ", "matchCase": True},
@@ -224,7 +214,7 @@ def _build_docs_requests_from_text(text: str):
         }
     })
 
-    # NOTE: we won't remove "1. " because that would destroy numbering semantics.
+
     return requests
 
 
@@ -320,26 +310,17 @@ def _run_and_persist(request, q_raw: str, q_final: str, cat: str, cat_conf: floa
 
     if not res.get("ok"):
         _push(request, "assistant", f"DJN run failed: {res.get('error', 'unknown error')}")
-        # do not set LAST_FINAL_IDX_KEY in failure
         return res
-
-    # push final answer
     _push(request, "assistant", res.get("final_display", res.get("final", "")))
-
-    # store run id + mark final message index (1-based by forloop.counter)
     if res.get("run_id"):
         request.session[LAST_RUN_ID_KEY] = res["run_id"]
     request.session[LAST_FINAL_IDX_KEY] = len(_get_chat(request))
     request.session.modified = True
-
-    # JSONL logging
     try:
         log_run({
-            # ✅ explicit + canonical
             "q_raw": q_raw,
             "q_final": q_final,
 
-            # backward compatibility (used by old UI / share)
             "query": q_final,
 
             "ok": res.get("ok"),
@@ -358,8 +339,6 @@ def _run_and_persist(request, q_raw: str, q_final: str, cat: str, cat_conf: floa
 
     except Exception:
         pass
-
-    # DB mirror
     if upsert_run and write_round and res.get("ok"):
         try:
             db_payload = {
@@ -386,7 +365,6 @@ def _run_and_persist(request, q_raw: str, q_final: str, cat: str, cat_conf: floa
 
             for rr in (res.get("rounds") or []):
                 outs = rr.get("outputs", []) or []
-                # inject roles into outputs
                 for o in outs:
                     jid = o.get("juror_id", "")
                     if jid and not o.get("role"):
@@ -399,7 +377,7 @@ def _run_and_persist(request, q_raw: str, q_final: str, cat: str, cat_conf: floa
                     "improvement": rr.get("improvement_score"),
                     "stagnation_flag": rr.get("stagnation_flag", False),
                     "verdict_distribution": rr.get("verdict_distribution", {}) or {},
-                    "handoff_tldr": {},  # not available in your current run.py
+                    "handoff_tldr": {},
                     "latency_ms": rr.get("latency_ms_per_round"),
                     "outputs": outs,
                     "tldr_similarity_score": rr.get("tldr_similarity_score"),
@@ -446,22 +424,14 @@ def jury_discussion(request):
         msg_l = msg.lower().strip()
         state = request.session.get(STATE_KEY, "idle")
 
-        # Any new non-skip user input starts a new interaction,
-        # so old 👍👎 should not appear on pre-run messages.
         if msg_l not in ("skip",):
             request.session[LAST_RUN_ID_KEY] = None
             request.session[LAST_FINAL_IDX_KEY] = None
             request.session.modified = True
 
-        # ------------------------------------------------------------
-        # If we're waiting for clarifications:
-        # - "skip" => run immediately, force LOW confidence note
-        # - any other user text => store answer, run immediately
-        # ------------------------------------------------------------
         if state == "need_clarify":
             base_q = (request.session.get(PENDING_QUERY_KEY) or "").strip()
             if not base_q:
-                # safety fallback
                 request.session[STATE_KEY] = "idle"
                 request.session.modified = True
                 _push(request, "assistant", "I lost the pending query. Please ask again.")
@@ -475,7 +445,6 @@ def jury_discussion(request):
                 ans.append(msg)
                 request.session[CLARIFY_A_KEY] = ans
 
-            # Build q_final with (optional) clarifications
             q_raw = base_q
             clarifier_answers = request.session.get(CLARIFY_A_KEY, []) or []
 
@@ -494,17 +463,13 @@ def jury_discussion(request):
             except Exception:
                 q_final = _build_final_query(request, q_raw)
 
-            # Force LOW confidence note if user skipped clarifications
             if bool(request.session.get(FORCE_LOW_CONF_KEY, False)):
                 q_final = (
                     q_final
                     + "\n\n[MODERATOR NOTE: The user skipped clarifications. You MUST set confidence to LOW and briefly mention what key info is missing.]"
                 )
 
-            # Run immediately
             _run_and_persist(request, q_raw, q_final, cat, cat_conf, missing, assumptions)
-
-            # Reset clarification state
             request.session[STATE_KEY] = "idle"
             request.session[PENDING_QUERY_KEY] = ""
             request.session[CLARIFY_QS_KEY] = []
@@ -514,19 +479,13 @@ def jury_discussion(request):
 
             return redirect("jury_discussion")
 
-        # ------------------------------------------------------------
-        # Normal new query: decide whether to ask cross-check questions or run immediately
-        # ------------------------------------------------------------
         request.session[PENDING_QUERY_KEY] = msg
         request.session[CLARIFY_QS_KEY] = []
         request.session[CLARIFY_A_KEY] = []
         request.session[FORCE_LOW_CONF_KEY] = False
         request.session.modified = True
 
-        # 1) cheap rule-based crosscheck
         qs = _basic_crosscheck_questions(msg)
-
-        # 2) if rule-based says "fine", ask Moderator LLM to verify sufficiency
         if not qs:
             try:
                 mod = moderator_check(msg)
@@ -545,7 +504,6 @@ def jury_discussion(request):
             _push(request, "assistant", text)
             return redirect("jury_discussion")
 
-        # If no clarifications needed -> run immediately
         q_raw = msg
         cat, cat_conf, missing = _classify_query(q_raw)
 
@@ -571,7 +529,6 @@ def jury_discussion(request):
 
         return redirect("jury_discussion")
 
-    # find last assistant message index (1-based, matching forloop.counter)
     last_assistant_idx = None
     for i, m in enumerate(chat, start=1):
         if m.get("role") != "user":
@@ -580,7 +537,6 @@ def jury_discussion(request):
     last_final_idx = request.session.get(LAST_FINAL_IDX_KEY)
     doc_url = request.session.pop(GDOCS_LAST_URL_KEY, None)
 
-    # fetch feedback value from DB if run_id exists
     run_id = request.session.get(LAST_RUN_ID_KEY)
     feedback_value = None
     if run_id:
@@ -633,7 +589,7 @@ def jury_feedback(request):
     Handles 👍 / 👎 feedback for a single DJN run.
     """
     run_id = request.POST.get("run_id")
-    value = request.POST.get("value")  # "up" or "down"
+    value = request.POST.get("value")
 
     if not run_id or value not in ("up", "down"):
         return redirect("jury_discussion")
@@ -645,7 +601,6 @@ def jury_feedback(request):
     except DJNRun.DoesNotExist:
         pass
 
-    # update rolling stats now that feedback exists
     try:
         update_stats_for_run(run_id)
     except Exception as e:
@@ -673,7 +628,6 @@ def gdocs_share(request):
     if not final_ans:
         return HttpResponseBadRequest("Empty message")
 
-    # ✅ canonical queries from DB (preferred)
     run_id = request.session.get(LAST_RUN_ID_KEY)
     raw_q, final_q = "", ""
 
@@ -685,7 +639,6 @@ def gdocs_share(request):
         except DJNRun.DoesNotExist:
             pass
 
-    # Fallback (DB missing): earliest user msg is safer than "skip"
     if not raw_q:
         for m in chat:
             if (m.get("role") or "").lower() == "user":
@@ -695,14 +648,12 @@ def gdocs_share(request):
     if not final_q:
         final_q = raw_q
 
-    # Store pending share in session (OAuth-safe)
     request.session[GDOCS_PENDING_TEXT_KEY] = final_ans
     request.session[GDOCS_PENDING_TITLE_KEY] = "DJN — Final Response"
     request.session[GDOCS_PENDING_QUERY_KEY] = raw_q
     request.session["gdocs_pending_query_final"] = final_q
     request.session.modified = True
 
-    # If already authed, create doc now
     if _get_gdocs_creds(request):
         raw_q_s = request.session.get(GDOCS_PENDING_QUERY_KEY, "")
         final_q_s = request.session.get("gdocs_pending_query_final", "")
@@ -719,12 +670,11 @@ def gdocs_share(request):
             request.session.pop(GDOCS_PENDING_TEXT_KEY, None)
             request.session.pop(GDOCS_PENDING_TITLE_KEY, None)
             request.session.pop(GDOCS_PENDING_QUERY_KEY, None)
-            request.session.pop("gdocs_pending_query_final", None)  # ✅ important
+            request.session.pop("gdocs_pending_query_final", None)
             request.session.modified = True
 
         return redirect("jury_discussion")
 
-    # Else start OAuth
     secrets = _gdocs_client_secrets_file()
     flow = Flow.from_client_secrets_file(
         secrets,
@@ -783,7 +733,7 @@ def gdocs_callback(request):
     request.session.pop(GDOCS_PENDING_TITLE_KEY, None)
     request.session.pop(GDOCS_STATE_KEY, None)
     request.session.pop(GDOCS_PENDING_QUERY_KEY, None)
-    request.session.pop("gdocs_pending_query_final", None)  # ✅ important
+    request.session.pop("gdocs_pending_query_final", None)
     request.session.modified = True
 
     return redirect("jury_discussion")

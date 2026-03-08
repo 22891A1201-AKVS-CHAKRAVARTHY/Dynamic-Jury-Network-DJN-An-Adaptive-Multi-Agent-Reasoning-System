@@ -38,9 +38,6 @@ except Exception:
 
 
 
-# -----------------------------
-# Strict JSON prompt templates
-# -----------------------------
 ASSUMPTIONS_PROMPT = ChatPromptTemplate.from_messages([
     ("system",
      "You are the DJN Assumption Builder.\n"
@@ -146,9 +143,6 @@ ROUND_SUMMARY_PROMPT = ChatPromptTemplate.from_messages([
 ])
 
 
-# -----------------------------
-# Helpers
-# -----------------------------
 def _msg_text(x) -> str:
     """AIMessage -> content; otherwise stringify."""
     return getattr(x, "content", str(x))
@@ -158,7 +152,6 @@ def _safe_parse_juror(juror_id: str, model_id: str, msg) -> JurorResult:
     raw = _msg_text(msg)
     try:
         obj = parse_with_repair(JurorOut, raw)
-        # enforce policy: keep at most 6 reasoning points, but don't fail validation
         if obj.reasoning and len(obj.reasoning) > 6:
             obj.reasoning = obj.reasoning[:6]
 
@@ -221,7 +214,7 @@ def moderator_check(query: str) -> Dict[str, Any]:
     if not query:
         return {"ok": True, "output": None, "raw": "", "error": "Empty query."}
 
-    llm = build_llm(JUDGE)  # Gemini judge doubles as moderator in v1
+    llm = build_llm(JUDGE)
     chain = MODERATOR_PROMPT | llm
     msg = chain.invoke({"query": query})
     raw = _msg_text(msg)
@@ -246,13 +239,12 @@ def build_assumptions(q_raw: str, clarifier_answers: Optional[List[str]] = None)
         return {"ok": False, "output": None, "raw": "", "error": "Empty q_raw."}
 
     if AssumptionsOut is None:
-        # ultra-safe fallback (should not happen)
         q_final = q_raw
         if clarifier_answers:
             q_final += "\n\nClarifications:\n- " + "\n- ".join([a.strip() for a in clarifier_answers if a and a.strip()])
         return {"ok": True, "output": {"q_final": q_final, "assumptions": []}, "raw": q_final}
 
-    llm = build_llm(JUDGE)  # Gemini judge acts as Assumption Builder in v1
+    llm = build_llm(JUDGE)
     chain = ASSUMPTIONS_PROMPT | llm
     msg = chain.invoke({
         "q_raw": q_raw,
@@ -322,17 +314,14 @@ def _cap_confidence(
     conf = (judge_dump.get("confidence") or "MEDIUM").strip().upper()
     text = (judge_dump.get("final_recommendation") or "").lower()
 
-    # Rule 1: best-available ≠ high confidence
     if stop_reason != "THRESHOLD_MET" and conf == "HIGH":
         conf = "MEDIUM"
 
-    # Rule 2: weak consensus → LOW
     if agreement < 0.50:
         conf = "LOW"
     elif agreement < threshold and conf == "HIGH":
         conf = "MEDIUM"
 
-    # Rule 3: speculative / epistemically uncertain topics
     speculative_cues = [
         "speculative", "uncertain", "unknown", "cannot be predicted",
         "no consensus", "highly debated", "not guaranteed"
@@ -380,18 +369,7 @@ def _build_round_context(summary: RoundSummary) -> str:
     )
 
 
-# -----------------------------
-# Main entry (sync for Django)
-# -----------------------------
 def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
-
-    """
-    Step C-1 (corrected):
-    - multi-round loop (max_rounds)
-    - threshold + improvement + stagnation
-    - FEED-FORWARD round_context so rounds actually converge
-    - UI keys unchanged; adds rounds/run_stop/run_metrics for DB logging
-    """
     query = (query or "").strip()
     if not query:
         return {"ok": False, "error": "Empty query."}
@@ -404,9 +382,6 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
     stagnation_rounds = int(os.getenv("DJN_STAGNATION_ROUNDS", "1"))
     min_ok = int(os.getenv("DJN_MIN_OK_JURORS", "2"))
 
-    # -----------------------------
-    # D-3: Pick roster dynamically from LLMPool (category-aware)
-    # -----------------------------
     jury_roster = []
     role_map = {"J1": "PROPOSER", "J2": "CRITIC", "J3": "REFINER", "J4": "RISK"}
 
@@ -415,11 +390,10 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
     if select_jury_roster:
         try:
             jury_roster, role_map = select_jury_roster(category, k=4)
-            # Convert roster rows -> LLMConfig for build_llm()
             for item in jury_roster:
                 selected_cfgs.append(
                     LLMConfig(
-                        name=item["juror_id"],          # J1..J4
+                        name=item["juror_id"],
                         provider=(item.get("provider", "") or "ollama_cloud").strip().lower(),
                         model=item["model_id"],
                         temperature=0.35,
@@ -428,9 +402,7 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
         except Exception:
             selected_cfgs = []
 
-    # Fallback: static pool if DB selector unavailable / failed
     if not selected_cfgs:
-        # Map first 4 static jurors to J1..J4 (stable ids)
         juror_ids = ["J1", "J2", "J3", "J4"]
         selected_cfgs = []
         for jid, cfg in zip(juror_ids, JURORS[:4]):
@@ -445,10 +417,9 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
             )
         jury_roster = [{"juror_id": c.name, "model_id": c.model, "provider": c.provider, "name": c.name} for c in selected_cfgs]
 
-    # Build per-juror chains ONCE (reuse across rounds)
     juror_map = {}
     for cfg in selected_cfgs:
-        juror_id = cfg.name  # J1..J4
+        juror_id = cfg.name
         model_id = cfg.model
 
         llm = build_llm(cfg)
@@ -470,7 +441,6 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
     prev_agreement: Optional[float] = None
     stagnation_hits = 0
 
-    # Keep latest artifacts for return fields
     last_juror_results: List[JurorResult] = []
     last_judge_msg = None
     last_judge_dump: Optional[Dict[str, Any]] = None
@@ -479,14 +449,12 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
     stop_reason = "MAX_ROUNDS"
     best_available_used = False
 
-    # Round context starts empty; becomes meaningful after Round 1 summary
     round_context = ""
 
     for r in range(1, max_rounds + 1):
         t0 = time.perf_counter()
         model_latency_ms: Dict[str, int] = {}
 
-        # FEED-FORWARD context into jurors
         juror_res: Dict[str, JurorResult] = parallel.invoke({
             "query": query,
             "round_context": round_context
@@ -496,7 +464,6 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
         last_juror_results = list(juror_res.values())
         round_latency_ms = int((t1 - t0) * 1000)
 
-        # Approx: assign same round latency to each juror (RunnableParallel limitation)
         for x in last_juror_results:
             model_latency_ms[x.juror_id] = round_latency_ms
 
@@ -511,11 +478,9 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
             stagnation_flag = (improvement < min_improve)
             stagnation_hits = (stagnation_hits + 1) if stagnation_flag else 0
 
-        # Prepare judge input using ONLY validated juror JSON
         ok_jurors = [x for x in last_juror_results if x.status.ok and x.status.raw]
         juror_text = "\n\n".join([f"[{x.juror_id}]\n{x.status.raw}" for x in ok_jurors])
 
-        # Judge this round
         jt0 = time.perf_counter()
         last_judge_msg = judge_chain.invoke({"query": query, "juror_text": juror_text})
         jt1 = time.perf_counter()
@@ -525,7 +490,6 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
         last_judge_parsed = judge_parsed
         last_judge_dump = judge_parsed["output"].model_dump() if judge_parsed.get("ok") else None
 
-        # Stop conditions
         if n_ok >= min_ok and agreement >= threshold:
             stop_reason = "THRESHOLD_MET"
             best_available_used = False
@@ -536,7 +500,6 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
             stop_reason = "MAX_ROUNDS"
             best_available_used = False
 
-        # Ground judge confidence using consensus
         if last_judge_dump is not None:
             _cap_confidence(last_judge_dump, agreement, threshold, stop_reason)
 
@@ -559,7 +522,6 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
         rs["judge_latency_ms"] = judge_latency_ms
         rs["consensus_threshold"] = threshold
 
-        # --- NEW: per-round juror outputs (DB-friendly) ---
         rs["outputs"] = [
             {
                 "juror_id": x.juror_id,
@@ -584,32 +546,27 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
 
         prev_agreement = agreement
 
-        # Build NEXT round context (only if we're going to continue)
         if r < max_rounds and stop_reason not in ("THRESHOLD_MET", "STAGNATION"):
             smsg = summary_chain.invoke({"query": query, "juror_text": juror_text})
             sparsed = _safe_parse_round_summary(smsg)
             if sparsed.get("ok"):
                 round_context = _build_round_context(sparsed["output"])
             else:
-                # If summary fails, keep a minimal context (still better than nothing)
                 round_context = (
                     f"Current majority label: {majority_label}\n"
                     f"Agreement: {agreement:.2f}\n"
                     "Next round goal: resolve disagreements and give the best supported label.\n"
                 )
         elif r < max_rounds and stop_reason in ("STAGNATION",):
-            # still helpful to have summary logged in future DB; we won't run next round anyway
             pass
 
         if stop_reason in ("THRESHOLD_MET", "STAGNATION"):
             break
 
-    # Final stop resolution
     if stop_reason not in ("THRESHOLD_MET", "STAGNATION"):
         stop_reason = "MAX_ROUNDS"
         best_available_used = True
 
-    # Back-compat metrics (last round only)
     agr = _agreement_from_ok(last_juror_results)
 
     final_display = _format_final_display(last_judge_dump, last_judge_msg, query)
@@ -630,7 +587,6 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
         "jury_roster": jury_roster,
         "role_map": role_map,
 
-        # Backwards-compatible: last round jurors only
         "jurors": [
             {
                 "juror_id": x.juror_id,
@@ -661,7 +617,6 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
             "stagnation_rounds": stagnation_rounds,
         },
 
-        # DB-friendly extras
         "rounds": rounds_log,
         "run_stop": {
             "stop_reason": stop_reason,

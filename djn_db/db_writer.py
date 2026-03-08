@@ -15,10 +15,7 @@ def _get_model_row(model_id: str):
 
 @transaction.atomic
 def upsert_run(payload: Dict[str, Any]) -> DJNRun:
-    """
-    payload is your v1 lean-log-ish dict.
-    Expect keys similar to the v1 log record in protocol doc.
-    """
+
     sid = payload["session_id"]
     run, _ = DJNRun.objects.get_or_create(session_id=sid, defaults={
         "created_at": timezone.now(),
@@ -47,22 +44,7 @@ def upsert_run(payload: Dict[str, Any]) -> DJNRun:
 
 @transaction.atomic
 def write_round(run: DJNRun, round_payload: Dict[str, Any]) -> DJNRound:
-    """
-    round_payload example:
-    {
-      "round": 1,
-      "agreement": 0.75,
-      "majority_label": "A",
-      "improvement": null,
-      "verdict_distribution": {"A":3,"B":1},
-      "handoff_tldr": {...},
-      "latency_ms": 2100,
-      "outputs": [
-        {"juror_id":"J1","role":"PROPOSER","model_id":"...","verdict_label":"...","tldr":"...","reasoning":[...],
-         "status":"OK","schema_valid":true,"latency_ms":900,"token_in":..,"token_out":..,"cost_estimate":..}
-      ]
-    }
-    """
+
     idx = int(round_payload["round"])
     r, _ = DJNRound.objects.get_or_create(run=run, round_index=idx)
 

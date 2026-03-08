@@ -36,7 +36,6 @@
   <main class="wrap">
     {% block content %}{% endblock %}
   </main>
-  <!-- DJN Loading Overlay -->
 <div id="djnLoading" class="djnLoading" aria-hidden="true">
   <div class="djnLoadingCard" role="dialog" aria-modal="true" aria-label="Loading">
     <div class="djnSpinner" aria-hidden="true"></div>
@@ -50,7 +49,6 @@
   </footer>
 
   <script>
-    // Theme Management
     function setTheme(theme) {
       document.documentElement.setAttribute('data-theme', theme);
       localStorage.setItem('djn-theme', theme);
@@ -68,13 +66,11 @@
       setTheme(newTheme);
     }
 
-    // Initialize theme on page load
     (function () {
       const savedTheme = localStorage.getItem('djn-theme') || 'light';
       setTheme(savedTheme);
     })();
 
-    // Copy functionality
     async function djnCopyFromTarget(btn) {
       const sel = btn.getAttribute("data-copy-target");
       const el = document.querySelector(sel);
@@ -106,20 +102,17 @@
       }, 1200);
     }
 
-    // Auto-scroll chat to bottom
     function scrollChatToBottom() {
       const chatBox = document.querySelector('.chatBox');
       if (chatBox) {
         chatBox.scrollTop = chatBox.scrollHeight;
       }
     }
-// Loading overlay on form submit (POST only)
 function djnShowLoading() {
   document.documentElement.classList.add("djn-loading");
   const el = document.getElementById("djnLoading");
   if (el) el.setAttribute("aria-hidden", "false");
 }
-// Ensure programmatic form.submit() also triggers loader
 (function () {
   const nativeSubmit = HTMLFormElement.prototype.submit;
   HTMLFormElement.prototype.submit = function () {
@@ -129,14 +122,12 @@ function djnShowLoading() {
 })();
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Show loader on buttons that actually submit something
   document.querySelectorAll(
     "button.sendBtn, button.clearBtn, form[method='post'] button[type='submit']"
   ).forEach((btn) => {
     btn.addEventListener("click", () => djnShowLoading());
   });
 
-  // Any POST form triggers loader (covers mouse submit)
   document.querySelectorAll("form[method='post']").forEach((f) => {
     f.addEventListener("submit", () => {
       if (f.dataset.submitting === "1") return;
@@ -147,7 +138,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-    // Run on page load
     document.addEventListener('DOMContentLoaded', () => {
       scrollChatToBottom();
     });

@@ -1,12 +1,4 @@
-/* ========================================
-   DJN - PREMIUM MODERN AESTHETIC
-   Sophisticated, Dynamic, Eye-Catching Design
-   Enhanced with Luxurious Animations & Effects
-   ======================================== */
-
-/* === THEME VARIABLES === */
 :root {
-  /* Light Theme - Crisp & Premium */
   --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
   --bg-tertiary: #f1f5f9;
@@ -46,13 +38,11 @@
   --shadow-glow-lg: 0 0 40px rgba(102, 126, 234, 0.4), 0 0 80px rgba(118, 75, 162, 0.2);
   --shadow-inner-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
 
-  /* Animation timing */
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* Blur values */
   --blur-sm: 4px;
   --blur-md: 8px;
   --blur-lg: 16px;
@@ -60,7 +50,6 @@
 }
 
 [data-theme="dark"] {
-  /* Dark Theme - Premium Midnight */
   --bg-primary: #0a0e17;
   --bg-secondary: #151923;
   --bg-tertiary: #1e2330;
@@ -99,7 +88,6 @@
   --shadow-glow-lg: 0 0 60px rgba(129, 140, 248, 0.5), 0 0 120px rgba(118, 75, 162, 0.3);
 }
 
-/* === GLOBAL STYLES === */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -124,7 +112,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Subtle animated background pattern */
 body::before {
   content: '';
   position: fixed;
@@ -145,7 +132,6 @@ body::before {
   100% { opacity: 1; transform: scale(1.05); }
 }
 
-/* === LINKS === */
 a {
   color: var(--accent-primary);
   text-decoration: none;
@@ -176,7 +162,6 @@ a:hover::after {
   width: 100%;
 }
 
-/* === HEADER === */
 .topbar {
   background: var(--bg-card);
   border-bottom: 1px solid var(--border-subtle);
@@ -301,7 +286,6 @@ a:hover::after {
   transition: color 0.3s var(--ease-smooth);
 }
 
-/* === THEME TOGGLE === */
 .themeToggle {
   padding: 0.625rem;
   background: var(--bg-tertiary);
@@ -357,7 +341,6 @@ a:hover::after {
   transition-duration: 0.1s;
 }
 
-/* === NAVIGATION === */
 .nav {
   display: flex;
   gap: 0.5rem;
@@ -427,7 +410,6 @@ a:hover::after {
   50% { opacity: 0.6; transform: translateX(-50%) scale(0.8); }
 }
 
-/* === LAYOUT === */
 .wrap {
   max-width: 1100px;
   margin: 0 auto;
@@ -508,7 +490,6 @@ a:hover::after {
   }
 }
 
-/* === TYPOGRAPHY === */
 .h1 {
   font-size: 2.25rem;
   font-weight: 800;
@@ -592,7 +573,6 @@ a:hover::after {
   50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.6); }
 }
 
-/* === FOOTER === */
 .footer {
   padding: 2.5rem;
   text-align: center;
@@ -615,7 +595,6 @@ a:hover::after {
   background: var(--gradient-accent);
 }
 
-/* === CHAT INTERFACE (FULL SCREEN) === */
 .chatContainer {
   position: fixed;
   top: 73px;
@@ -680,7 +659,6 @@ a:hover::after {
   justify-content: flex-end;
 }
 
-/* FULL WIDTH BUBBLES */
 .msg {
   width: 100%;
   max-width: 100%;
@@ -783,7 +761,6 @@ a:hover::after {
   word-wrap: break-word;
 }
 
-/* === CHAT INPUT AREA === */
 .chatComposer {
   border-top: 1px solid var(--border-subtle);
   background: var(--bg-card);
@@ -968,7 +945,6 @@ a:hover::after {
   transition-duration: 0.1s;
 }
 
-/* === BUTTONS === */
 .btn {
   padding: 0.875rem 1.5rem;
   border-radius: 14px;
@@ -1091,7 +1067,6 @@ a:hover::after {
   transform: translateY(0);
 }
 
-/* === UTILITY CLASSES === */
 .row {
   display: flex;
 }
@@ -1186,7 +1161,6 @@ a:hover::after {
   color: var(--text-muted);
 }
 
-/* === HISTORY PAGE === */
 .label {
   font-size: 0.75rem;
   color: var(--text-muted);
@@ -1318,7 +1292,6 @@ a:hover::after {
   margin: 0;
 }
 
-/* === RESPONSIVE === */
 @media (max-width: 768px) {
   .wrap {
     padding: 1.5rem 1rem;
@@ -1352,14 +1325,12 @@ a:hover::after {
   }
 }
 
-/* === DJN CHAT PATCH === */
 .chatMax {
   max-width: 900px;
   margin: 0 auto;
   width: 100%;
 }
 
-/* Empty state */
 .chatEmpty {
   text-align: center;
   padding: 4rem 2rem;
@@ -1402,7 +1373,6 @@ a:hover::after {
   }
 }
 
-/* Hint text under composer */
 .chatHintText {
   color: var(--text-muted);
   font-size: 0.8125rem;
@@ -1414,10 +1384,6 @@ a:hover::after {
   color: var(--text-secondary);
 }
 
-/* ========================================
-   DJN Loading Overlay (blur + mosaic popup)
-   ======================================== */
-
 .djnLoading {
   position: fixed;
   inset: 0;
@@ -1428,7 +1394,6 @@ a:hover::after {
   padding: 24px;
 }
 
-/* show when loading */
 html.djn-loading .djnLoading {
   display: flex;
   animation: overlayFadeIn 0.3s var(--ease-smooth) both;
@@ -1439,7 +1404,6 @@ html.djn-loading .djnLoading {
   to { opacity: 1; }
 }
 
-/* Blur + mosaic-ish background */
 .djnLoading::before {
   content: "";
   position: absolute;
@@ -1471,7 +1435,6 @@ html.djn-loading .djnLoading {
   }
 }
 
-/* Subtle mosaic/noise layer */
 .djnLoading::after {
   content: "";
   position: absolute;
@@ -1601,18 +1564,15 @@ html.djn-loading .djnLoading {
   100% { content: ''; }
 }
 
-/* Optional: freeze scrolling while loading */
 html.djn-loading, html.djn-loading body {
   overflow: hidden;
 }
 
-/* Optional: soften underlying page while loading */
 html.djn-loading body {
   filter: saturate(0.95) brightness(0.98);
   transition: filter 0.3s var(--ease-smooth);
 }
 
-/* === SELECTION STYLES === */
 ::selection {
   background: rgba(99, 102, 241, 0.3);
   color: var(--text-primary);
@@ -1623,14 +1583,12 @@ html.djn-loading body {
   color: var(--text-primary);
 }
 
-/* === FOCUS STYLES === */
 :focus-visible {
   outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-/* === REDUCED MOTION === */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

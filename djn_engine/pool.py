@@ -1,6 +1,5 @@
 from .llms import LLMConfig
 
-# Judge | Moderator (Gemini)
 JUDGE = LLMConfig(
     name="judge_gemini",
     provider="gemini",
@@ -8,7 +7,6 @@ JUDGE = LLMConfig(
     temperature=0.2,
 )
 
-# Jurors (Ollama Cloud hosted)
 JURORS = [
     LLMConfig(name="gpt-oss-20b", provider="ollama_cloud", model="gpt-oss:20b-cloud", temperature=0.4),
     LLMConfig(name="gpt-oss-120b", provider="ollama_cloud", model="gpt-oss:120b-cloud", temperature=0.35),
@@ -18,8 +16,6 @@ JURORS = [
     LLMConfig(name="minimax-m2", provider="ollama_cloud", model="minimax-m2:cloud", temperature=0.35),
     LLMConfig(name="glm-4.6", provider="ollama_cloud", model="glm-4.6:cloud", temperature=0.35),
 
-    # NVIDIA NIM juror
-    # NVIDIA NIM juror (same as your working Streamlit test)
     LLMConfig(
         name="nemotron-3-nano-30b-a3b",
         provider="nim",

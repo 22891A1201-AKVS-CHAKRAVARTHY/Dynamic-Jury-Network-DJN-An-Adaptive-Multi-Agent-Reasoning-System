@@ -8,10 +8,7 @@ LOG_DIR = os.getenv("DJN_LOG_DIR", "logs")
 LOG_FILE = os.getenv("DJN_LOG_FILE", "djn_runs.jsonl")
 
 def log_run(payload: Dict[str, Any]) -> str:
-    """
-    Append one DJN run as a single JSON line.
-    Returns the filepath written to.
-    """
+
     os.makedirs(LOG_DIR, exist_ok=True)
     path = os.path.join(LOG_DIR, LOG_FILE)
 
@@ -20,7 +17,6 @@ def log_run(payload: Dict[str, Any]) -> str:
         **(payload or {}),
     }
 
-    # Ensure it's JSON-serializable
     line = json.dumps(record, ensure_ascii=False, default=str)
 
     with open(path, "a", encoding="utf-8") as f:
@@ -29,10 +25,6 @@ def log_run(payload: Dict[str, Any]) -> str:
     return path
 
 def read_last_runs(limit: int = 25) -> list[dict]:
-    """
-    Reads last N JSONL records from logs/djn_runs.jsonl.
-    Returns newest-first.
-    """
 
     os.makedirs(LOG_DIR, exist_ok=True)
     path = os.path.join(LOG_DIR, LOG_FILE)

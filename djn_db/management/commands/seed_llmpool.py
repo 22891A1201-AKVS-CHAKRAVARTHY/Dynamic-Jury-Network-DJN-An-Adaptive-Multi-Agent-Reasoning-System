@@ -3,7 +3,6 @@ from django.utils import timezone
 
 from djn_db.models import LLMPool
 
-# seed source: your static pool list (cloud jurors)
 from djn_engine.pool import JURORS
 
 
@@ -11,7 +10,6 @@ def _infer_tags(cfg_name: str, model_id: str):
     s = f"{cfg_name} {model_id}".lower()
     tags = set()
 
-    # core buckets in your protocol docs: coding/career/planning/factual/opinion/general
     if "coder" in s or "code" in s:
         tags.add("coding")
     if "vl" in s or "vision" in s:
@@ -21,7 +19,6 @@ def _infer_tags(cfg_name: str, model_id: str):
     if "career" in s:
         tags.add("career")
 
-    # always include general fallback so any model can be used
     tags.add("general")
     return sorted(tags)
 
@@ -55,7 +52,6 @@ class Command(BaseCommand):
             )
 
             if not created:
-                # refresh safe fields without overwriting manual tuning too aggressively
                 row.name = name[:120]
                 row.provider = provider[:60]
                 if not row.tags_json:
