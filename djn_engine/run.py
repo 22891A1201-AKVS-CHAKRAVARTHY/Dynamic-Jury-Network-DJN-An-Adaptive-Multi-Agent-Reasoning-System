@@ -144,8 +144,36 @@ ROUND_SUMMARY_PROMPT = ChatPromptTemplate.from_messages([
 
 
 def _msg_text(x) -> str:
-    """AIMessage -> content; otherwise stringify."""
-    return getattr(x, "content", str(x))
+    """Return only user-visible text from a LangChain model response.
+
+    Some providers return ``AIMessage.content`` as a string, while others
+    return typed content blocks such as ``[{"type": "text", "text": ...}]``.
+    Converting the latter with ``str()`` leaks transport metadata (including
+    signatures) and prevents the JSON payload from being parsed.
+    """
+    content = getattr(x, "content", x)
+
+    if isinstance(content, str):
+        return content
+
+    if isinstance(content, list):
+        parts: List[str] = []
+        for block in content:
+            if isinstance(block, str):
+                parts.append(block)
+                continue
+
+            if isinstance(block, dict):
+                text = block.get("text")
+            else:
+                text = getattr(block, "text", None)
+
+            if isinstance(text, str):
+                parts.append(text)
+
+        return "\n".join(part for part in parts if part).strip()
+
+    return str(content)
 
 
 def _safe_parse_juror(juror_id: str, model_id: str, msg) -> JurorResult:
@@ -343,16 +371,20 @@ def _format_final_display(judge_dump: Optional[Dict[str, Any]], judge_msg, query
     conf = (judge_dump.get("confidence") or "MEDIUM").strip().upper()
     conf_title = conf[:1] + conf[1:].lower()
 
-    why = judge_dump.get("why") or []
-    why_lines = "\n".join([f"- {w}" for w in why]) if why else "- (No reason provided.)"
+    def section(title: str, values: List[str]) -> str:
+        clean = [str(value).strip() for value in values if str(value).strip()]
+        return f"{title}\n" + ("\n".join(f"• {value}" for value in clean) if clean else "• None identified")
 
-    return (
-        "Final Recommendation:\n"
-        f"{(judge_dump.get('final_recommendation') or '').strip()}\n\n"
-        f"Confidence Level: {conf_title}\n\n"
-        "Reason:\n"
-        f"{why_lines}"
-    )
+    recommendation = (judge_dump.get("final_recommendation") or "").strip()
+    sections = [
+        f"FINAL RECOMMENDATION\n{recommendation}",
+        f"CONFIDENCE\n{conf_title}",
+        section("WHY", judge_dump.get("why") or []),
+        section("COMMON GROUND", judge_dump.get("common_ground") or []),
+        section("MAIN DISAGREEMENTS", judge_dump.get("main_disagreement") or []),
+        section("CONDITIONAL GUIDANCE", judge_dump.get("conditional_guidance") or []),
+    ]
+    return "\n\n".join(sections)
 
 
 def _build_round_context(summary: RoundSummary) -> str:

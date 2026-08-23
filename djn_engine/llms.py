@@ -31,7 +31,21 @@ def build_llm(cfg: LLMConfig) -> Any:
             model=cfg.model,
             temperature=cfg.temperature,
         )
-
+    if cfg.provider == "ollama":
+        local_url = cfg.base_url or os.getenv(
+            "OLLAMA_LOCAL_URL",
+            "http://127.0.0.1:11434",
+        )
+        if not isinstance(local_url, str) or not local_url.strip():
+            raise RuntimeError(
+                "OLLAMA_LOCAL_URL must be a URL string, for example "
+                "http://127.0.0.1:11434"
+            )
+        return ChatOllama(
+            model=cfg.model,
+            temperature=cfg.temperature,
+            base_url=local_url.strip(),
+        )
     if cfg.provider == "ollama_cloud":
         base_url = cfg.base_url or os.getenv("OLLAMA_BASE_URL")
         api_key = os.getenv("OLLAMA_API_KEY")

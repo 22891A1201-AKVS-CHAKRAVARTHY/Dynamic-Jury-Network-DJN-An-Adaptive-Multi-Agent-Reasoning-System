@@ -51,6 +51,9 @@ build/
 # Temporary
 tmp/
 temp/
+logs/
+
+temp.py
 
 credentials.json
 dir_tree.txt
