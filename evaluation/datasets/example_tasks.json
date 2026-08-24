@@ -1,0 +1,17 @@
+{
+  "tasks": [
+    {
+      "task_id": "example-normalized-001",
+      "dataset": "synthetic-example",
+      "split": "test",
+      "category": "factual",
+      "prompt": "What is the capital of France?",
+      "reference_answer": "Paris",
+      "scorer": "normalized_match",
+      "scorer_version": "scorers-v1",
+      "source_url": "",
+      "license": "Synthetic example; replace before paper evaluation",
+      "metadata": {}
+    }
+  ]
+}

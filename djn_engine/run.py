@@ -616,24 +616,45 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
             for x in last_juror_results
         ]
 
-        rounds_log.append(rs)
-
+        # Handoff produced by this round for the next round.
+        # It remains empty when no additional round is required.
+        rs["handoff_tldr"] = {}
+        rs["handoff_schema_valid"] = None
+        rs["handoff_error"] = ""
 
         prev_agreement = agreement
 
+        # Build and record the context passed into the next round.
         if r < max_rounds and stop_reason not in ("THRESHOLD_MET", "STAGNATION"):
-            smsg = summary_chain.invoke({"query": query, "juror_text": juror_text})
+            smsg = summary_chain.invoke({
+                "query": query,
+                "juror_text": juror_text,
+            })
             sparsed = _safe_parse_round_summary(smsg)
+
             if sparsed.get("ok"):
-                round_context = _build_round_context(sparsed["output"])
+                summary = sparsed["output"]
+
+                rs["handoff_tldr"] = summary.model_dump()
+                rs["handoff_schema_valid"] = True
+                round_context = _build_round_context(summary)
             else:
+                rs["handoff_schema_valid"] = False
+                rs["handoff_error"] = sparsed.get(
+                    "error",
+                    "Round summary parsing failed.",
+                )
+
+                # Safe fallback context when structured summary parsing fails.
                 round_context = (
                     f"Current majority label: {majority_label}\n"
                     f"Agreement: {agreement:.2f}\n"
-                    "Next round goal: resolve disagreements and give the best supported label.\n"
+                    "Next round goal: resolve disagreements and give the "
+                    "best supported label.\n"
                 )
-        elif r < max_rounds and stop_reason in ("STAGNATION",):
-            pass
+
+        # Append only after the handoff information has been attached.
+        rounds_log.append(rs)
 
         if stop_reason in ("THRESHOLD_MET", "STAGNATION"):
             break

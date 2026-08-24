@@ -3,6 +3,7 @@ import json
 import os
 from datetime import datetime, timezone
 from typing import Any, Dict
+from .privacy import sanitize
 
 LOG_DIR = os.getenv("DJN_LOG_DIR", "logs")
 LOG_FILE = os.getenv("DJN_LOG_FILE", "djn_runs.jsonl")
@@ -14,7 +15,7 @@ def log_run(payload: Dict[str, Any]) -> str:
 
     record = {
         "ts_utc": datetime.now(timezone.utc).isoformat(),
-        **(payload or {}),
+        **sanitize(payload or {}),
     }
 
     line = json.dumps(record, ensure_ascii=False, default=str)

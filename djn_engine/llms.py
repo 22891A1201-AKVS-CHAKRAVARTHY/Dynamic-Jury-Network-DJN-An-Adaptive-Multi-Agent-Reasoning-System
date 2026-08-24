@@ -26,10 +26,13 @@ def build_llm(cfg: LLMConfig) -> Any:
     Provider behavior matches your txt skeletons (Ollama Cloud / NIM / Gemini).
     """
 
+    timeout_seconds = max(1.0, float(os.getenv("DJN_PROVIDER_TIMEOUT_SECONDS", "120")))
+
     if cfg.provider == "gemini":
         return ChatGoogleGenerativeAI(
             model=cfg.model,
             temperature=cfg.temperature,
+            timeout=timeout_seconds,
         )
     if cfg.provider == "ollama":
         local_url = cfg.base_url or os.getenv(
@@ -45,6 +48,7 @@ def build_llm(cfg: LLMConfig) -> Any:
             model=cfg.model,
             temperature=cfg.temperature,
             base_url=local_url.strip(),
+            client_kwargs={"timeout": timeout_seconds},
         )
     if cfg.provider == "ollama_cloud":
         base_url = cfg.base_url or os.getenv("OLLAMA_BASE_URL")
@@ -54,11 +58,14 @@ def build_llm(cfg: LLMConfig) -> Any:
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
 
+        client_kwargs = {"timeout": timeout_seconds}
+        if headers:
+            client_kwargs["headers"] = headers
         return ChatOllama(
             model=cfg.model,
             temperature=cfg.temperature,
             base_url=base_url,
-            client_kwargs={"headers": headers} if headers else None,
+            client_kwargs=client_kwargs,
         )
 
     if cfg.provider == "nim":
@@ -73,6 +80,7 @@ def build_llm(cfg: LLMConfig) -> Any:
         kwargs = {
             "model": cfg.model,
             "temperature": cfg.temperature,
+            "timeout": timeout_seconds,
         }
         if api_key:
             kwargs["api_key"] = api_key

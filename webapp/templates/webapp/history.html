@@ -60,10 +60,11 @@
           </div>
         </div>
 
-        <button type="button" class="btn-copy" data-copy-target="#final{{ forloop.counter }}"
-          onclick="djnCopyFromTarget(this)">
-          Copy
-        </button>
+        <div class="row gap8">
+          <a class="btn-copy" href="{% url 'run_audit_json' r.run_id %}">Download audit JSON</a>
+          <button type="button" class="btn-copy" data-copy-target="#final{{ forloop.counter }}"
+            onclick="djnCopyFromTarget(this)">Copy</button>
+        </div>
       </div>
 
       <div class="mt10">
@@ -72,6 +73,27 @@
 
         <div class="label">Final Query (Sent to Jurors)</div>
         <div class="pre">{% firstof r.q_final r.query "" %}</div>
+
+        <div class="label">Clarification audit</div>
+        <div class="muted13">
+          Used: <b>{{ r.clarifier_used|yesno:"Yes,No" }}</b>
+          • Skipped: <b>{{ r.clarifier_skipped|yesno:"Yes,No" }}</b>
+        </div>
+        {% if r.clarifier_questions %}<div class="pre">Questions: {{ r.clarifier_questions|join:" | " }}</div>{% endif %}
+        {% if r.clarifier_answers %}<div class="pre">Answers: {{ r.clarifier_answers|join:" | " }}</div>{% endif %}
+        {% if r.assumptions %}<div class="pre">Assumptions: {{ r.assumptions|join:" | " }}</div>{% endif %}
+
+        <div class="muted13 mt6">
+          Selector: <b>{{ r.selector_version|default:"-" }}</b>
+          • Seed: <b>{{ r.selection_seed|default:"-" }}</b>
+          • Config ID: <b>{{ r.experiment_config_id|default:"-" }}</b>
+        </div>
+        <details class="mt6">
+          <summary class="muted13">Selection rationale and version snapshots</summary>
+          <div class="pre">Selection: {{ r.selection_trace }}
+Prompts: {{ r.prompt_versions }}
+Experiment: {{ r.experiment_config }}</div>
+        </details>
       </div>
 
       <div class="mt12">
@@ -85,6 +107,8 @@
               Round <b>{{ rd.round|default:forloop.counter }}</b>
               • Agreement: <b>{{ rd.agreement_score|floatformat:2|default:"-" }}</b>
               • Majority: <b>{{ rd.majority_label|default:"-" }}</b>
+              • Stop: <b>{{ rd.stop_reason|default:"CONTINUE" }}</b>
+              • Round wall: <b>{{ rd.latency_ms_per_round|default:"-" }} ms</b>
             </div>
 
             {% if rd.outputs and rd.outputs|length %}
@@ -98,12 +122,39 @@
                 ({{ r.role_map|get_item:j.juror_id|default:"" }})
                 {% endif %}
                 : {{ j.verdict_label|default:"-" }}
+                • {{ j.latency_ms|default:"-" }} ms
+                • tokens {{ j.token_total|default:"N/A" }}
+                • cost {{ j.cost_estimate|default:"N/A" }} {{ j.cost_currency|default:"" }}
+                • prompt {{ j.juror_prompt_version|default:"-" }}
+                • role rules {{ j.role_instruction_version|default:"-" }}
               </span>
+              <div class="muted12">{{ j.juror_id }} role instruction: {{ j.role_instruction|default:"-" }}</div>
               {% endfor %}
             </div>
             {% else %}
             <div class="muted12 mt8">No juror details for this round.</div>
             {% endif %}
+
+            <div class="mt8">
+              <div class="label">Judge audit</div>
+              <div class="muted12">
+                Model: {{ rd.judge_model_id|default:"-" }} • Latency: {{ rd.judge_latency_ms|default:"-" }} ms
+                • Schema valid: {{ rd.judge_schema_valid|yesno:"Yes,No,Not called" }}
+                • Usage: {{ rd.judge_usage }} • Cost: {{ rd.judge_cost_estimate|default:"N/A" }}
+              </div>
+              {% if rd.judge_output %}<div class="pre">{{ rd.judge_output }}</div>{% endif %}
+            </div>
+
+            <div class="mt8">
+              <div class="label">Moderator handoff to next round</div>
+              <div class="muted12">
+                Model: {{ rd.handoff_model_id|default:"Not required" }}
+                • Latency: {{ rd.handoff_latency_ms|default:"-" }} ms
+                • Hash: {{ rd.handoff_hash|default:"-" }}
+                • Usage: {{ rd.handoff_usage }} • Cost: {{ rd.handoff_cost_estimate|default:"N/A" }}
+              </div>
+              {% if rd.handoff_tldr %}<div class="pre">{{ rd.handoff_tldr }}</div>{% else %}<div class="muted12">No next-round handoff required.</div>{% endif %}
+            </div>
           </div>
           {% endfor %}
         </div>
@@ -115,6 +166,11 @@
       <div class="mt12">
         <div class="label">Final Response</div>
         <pre id="final{{ forloop.counter }}" class="pre pre0">{{ r.final_display|default:"" }}</pre>
+        <div class="muted13 mt6">
+          Consensus confidence: <b>{{ r.run_stop.consensus_confidence|default:"-" }}</b>
+          • Raw judge confidence: <b>{{ r.run_stop.raw_judge_confidence|default:"-" }}</b>
+          • Policy: <b>{{ r.run_stop.confidence_policy_version|default:"-" }}</b>
+        </div>
       </div>
     </div>
     {% endfor %}
