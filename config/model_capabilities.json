@@ -1,0 +1,14 @@
+{
+  "version": "capabilities-v1",
+  "categories": ["coding", "career", "planning", "factual", "opinion", "mathematical", "general"],
+  "models": {
+    "gpt-oss:20b-cloud": {"general": 0.75, "opinion": 0.65},
+    "gpt-oss:120b-cloud": {"general": 0.9, "planning": 0.8, "factual": 0.75},
+    "deepseek-coder:6.7b": {"coding": 0.95, "mathematical": 0.65, "general": 0.45},
+    "nemotron-3-ultra:cloud": {"general": 0.85, "factual": 0.8, "planning": 0.75},
+    "gemma4:31b-cloud": {"general": 0.75, "career": 0.7, "opinion": 0.7},
+    "minimax-m3:cloud": {"general": 0.75, "planning": 0.75},
+    "glm-5.2:cloud": {"general": 0.8, "mathematical": 0.75, "factual": 0.7},
+    "nvidia/nemotron-3-super": {"general": 0.85, "coding": 0.75, "factual": 0.8}
+  }
+}

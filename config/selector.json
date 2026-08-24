@@ -1,0 +1,20 @@
+{
+  "version": "selector-v2",
+  "minimum_samples": 10,
+  "cold_start_prior": 0.5,
+  "weights": {
+    "capability": 0.3,
+    "schema_validity": 0.2,
+    "acceptance": 0.2,
+    "majority_alignment": 0.1,
+    "reliability": 0.1,
+    "latency": 0.1
+  },
+  "latency_reference_ms": 4000,
+  "fallback_model_ids": [
+    "gpt-oss:20b-cloud",
+    "gpt-oss:120b-cloud",
+    "nemotron-3-ultra:cloud",
+    "gemma4:31b-cloud"
+  ]
+}

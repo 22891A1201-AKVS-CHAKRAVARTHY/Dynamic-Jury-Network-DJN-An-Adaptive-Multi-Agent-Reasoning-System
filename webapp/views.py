@@ -377,7 +377,7 @@ def _run_and_persist(request, q_raw: str, q_final: str, cat: str, cat_conf: floa
                     "improvement": rr.get("improvement_score"),
                     "stagnation_flag": rr.get("stagnation_flag", False),
                     "verdict_distribution": rr.get("verdict_distribution", {}) or {},
-                    "handoff_tldr": {},
+                    "handoff_tldr": rr.get("handoff_tldr", {}) or {},
                     "latency_ms": rr.get("latency_ms_per_round"),
                     "outputs": outs,
                     "tldr_similarity_score": rr.get("tldr_similarity_score"),

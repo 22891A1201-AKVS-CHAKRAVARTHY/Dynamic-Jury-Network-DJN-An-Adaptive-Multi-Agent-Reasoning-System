@@ -63,8 +63,18 @@
         <div class="row gap10 mt10">
           {% if feedback_value == 1 %}
           <button class="btn" type="button" disabled>👍 Helpful</button>
+          <form method="post" action="{% url 'jury_feedback' %}">
+            {% csrf_token %}<input type="hidden" name="run_id" value="{{ run_id }}" />
+            <input type="hidden" name="value" value="down" />
+            <button class="btn ghost" type="submit">Change to 👎</button>
+          </form>
           {% elif feedback_value == -1 %}
           <button class="btn ghost" type="button" disabled>👎 Not helpful</button>
+          <form method="post" action="{% url 'jury_feedback' %}">
+            {% csrf_token %}<input type="hidden" name="run_id" value="{{ run_id }}" />
+            <input type="hidden" name="value" value="up" />
+            <button class="btn" type="submit">Change to 👍</button>
+          </form>
           {% else %}
           <form method="post" action="{% url 'jury_feedback' %}">
             {% csrf_token %}

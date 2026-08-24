@@ -1,0 +1,32 @@
+manifest_version: manifest-v1
+project: Dynamic Jury Network
+paper_revision_branch: paper-revision-fixes
+pre_batch_commit: ca73724
+pre_batch_commit_message: "Feat: add role-aware juror prompts and audit metadata"
+implementation_commit: "f008d5d39063d8a20699f8c8641e7b4bdaf8b941"
+implementation_commit_message: "feat: add audited DJN orchestration and reproducible evaluation"
+source_snapshot_date: 2026-08-24
+source_snapshot_note: >-
+  The uploaded working tree also contained uncommitted handoff persistence
+  edits in djn_engine/run.py and webapp/views.py. The resulting audited source
+  snapshot is recorded by implementation_commit.
+runtime:
+  python: "3.12.4"
+  django: "5.2.10"
+database:
+  engine: sqlite3
+  latest_migration: 0004_auditability_evaluation_and_feedback
+versions:
+  role_instructions: roles-v1
+  juror_prompt: juror-role-prompt-v2
+  judge_prompt: judge-prompt-v2
+  moderator_prompt: moderator-prompt-v1
+  assumptions_prompt: assumptions-prompt-v1
+  round_summary_prompt: round-summary-prompt-v1
+  round_summary_schema: round-summary-schema-v1
+  selector: selector-v2
+  capabilities: capabilities-v1
+  pricing: prices-v1
+  confidence_policy: consensus-cap-v1
+  paper_metrics: paper-metrics-v1
+live_inference_performed_during_revision: false

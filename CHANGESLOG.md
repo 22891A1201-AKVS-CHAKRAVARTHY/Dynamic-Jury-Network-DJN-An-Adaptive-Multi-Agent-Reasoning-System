@@ -136,3 +136,4 @@ The existing `OLLAMA_BASE_URL` and `OLLAMA_API_KEY` variables remain dedicated t
 - `djn_engine/llms.py` — adds validated local Ollama provider support.
 
 ---
+

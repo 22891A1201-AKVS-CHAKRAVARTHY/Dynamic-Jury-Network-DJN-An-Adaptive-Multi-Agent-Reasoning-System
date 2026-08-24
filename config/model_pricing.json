@@ -1,0 +1,6 @@
+{
+  "version": "prices-v1",
+  "currency": "USD",
+  "models": {},
+  "notes": "Populate verified provider prices per one million tokens before reporting costs. Unknown models intentionally produce null cost."
+}
