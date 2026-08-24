@@ -3,11 +3,13 @@ project: Dynamic Jury Network
 paper_revision_branch: paper-revision-fixes
 pre_batch_commit: ca73724
 pre_batch_commit_message: "Feat: add role-aware juror prompts and audit metadata"
+implementation_commit: "f008d5d39063d8a20699f8c8641e7b4bdaf8b941"
+implementation_commit_message: "feat: add audited DJN orchestration and reproducible evaluation"
 source_snapshot_date: 2026-08-24
 source_snapshot_note: >-
-  The uploaded working tree also contained uncommitted handoff persistence edits
-  in djn_engine/run.py and webapp/views.py. Git tree SHA must be filled from the
-  user's repository after applying this package.
+  The uploaded working tree also contained uncommitted handoff persistence
+  edits in djn_engine/run.py and webapp/views.py. The resulting audited source
+  snapshot is recorded by implementation_commit.
 runtime:
   python: "3.12.4"
   django: "5.2.10"
