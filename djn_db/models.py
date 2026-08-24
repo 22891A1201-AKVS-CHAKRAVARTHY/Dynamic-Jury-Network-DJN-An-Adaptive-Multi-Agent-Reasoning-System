@@ -80,7 +80,6 @@ class DJNRound(models.Model):
     latency_ms = models.IntegerField(null=True, blank=True)
 
     class Meta:
-        unique_together = [("run", "round_index")]
         ordering = ["round_index"]
         constraints = [
         models.UniqueConstraint(fields=["run", "round_index"], name="uniq_run_roundindex"),
@@ -95,6 +94,17 @@ class JurorResponse(models.Model):
 
     juror_id = models.CharField(max_length=4)
     role = models.CharField(max_length=16, blank=True, default="")
+    role_instruction = models.TextField(blank=True, default="")
+    role_instruction_version = models.CharField(
+        max_length=40,
+        blank=True,
+        default="",
+    )
+    juror_prompt_version = models.CharField(
+        max_length=40,
+        blank=True,
+        default="",
+    )
 
     model = models.ForeignKey(LLMPool, on_delete=models.SET_NULL, null=True, blank=True)
     model_id_snapshot = models.CharField(max_length=160, blank=True, default="")
@@ -115,7 +125,6 @@ class JurorResponse(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
-        unique_together = [("round", "juror_id")]
         ordering = ["juror_id"]
         constraints = [
             models.UniqueConstraint(fields=["round", "juror_id"], name="uniq_round_juror"),

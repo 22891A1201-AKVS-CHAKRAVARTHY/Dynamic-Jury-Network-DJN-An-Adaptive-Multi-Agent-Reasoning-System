@@ -64,6 +64,23 @@ def write_round(run: DJNRun, round_payload: Dict[str, Any]) -> DJNRound:
         jr, _ = JurorResponse.objects.get_or_create(round=r, juror_id=juror_id)
 
         jr.role = o.get("role", jr.role) or ""
+        jr.role_instruction = (
+            o.get("role_instruction", jr.role_instruction) or ""
+        )
+        jr.role_instruction_version = (
+            o.get(
+                "role_instruction_version",
+                jr.role_instruction_version,
+            )
+            or ""
+        )
+        jr.juror_prompt_version = (
+            o.get(
+                "juror_prompt_version",
+                jr.juror_prompt_version,
+            )
+            or ""
+        )
         mid = o.get("model_id", "") or ""
         jr.model = _get_model_row(mid)
         jr.model_id_snapshot = mid

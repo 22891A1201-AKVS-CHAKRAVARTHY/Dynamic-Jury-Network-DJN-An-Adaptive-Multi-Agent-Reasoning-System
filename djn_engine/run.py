@@ -59,22 +59,59 @@ ASSUMPTIONS_PROMPT = ChatPromptTemplate.from_messages([
      "Return JSON now.")
 ])
 
+ROLE_INSTRUCTIONS: Dict[str, str] = {
+    "PROPOSER": (
+        "Develop the strongest direct answer or recommendation. "
+        "State the main position clearly and support it with concrete reasoning."
+    ),
+    "CRITIC": (
+        "Stress-test the proposed direction. Look for weak assumptions, missing evidence, "
+        "counterexamples, contradictions, and reasons the recommendation could fail."
+    ),
+    "REFINER": (
+        "Improve the answer's precision and usefulness. Resolve ambiguity, add necessary "
+        "conditions, and produce a better-supported formulation."
+    ),
+    "RISK": (
+        "Act as the risk and verification juror. Check constraints, factual consistency, "
+        "edge cases, safety concerns, and uncertainty before giving the verdict."
+    ),
+}
+
+ROLE_INSTRUCTIONS_VERSION = "roles-v1"
+JUROR_PROMPT_VERSION = "juror-role-prompt-v1"
+
+DEFAULT_ROLE_INSTRUCTION = (
+    "Evaluate the query independently, identify important assumptions, and give a "
+    "well-supported verdict."
+)
+
 JUROR_PROMPT = ChatPromptTemplate.from_messages([
     ("system",
-     "You are a DJN juror.\n"
-     "You MUST output ONLY valid JSON.\n"
-     "No markdown. No backticks. No commentary. No extra keys.\n"
-     "Return EXACTLY this schema:\n"
-     "{{\n"
-     '  "verdict_label": "STRING",\n'
-     '  "tldr": "STRING (<= 90 words)",\n'
-     '  "reasoning": ["STRING","STRING","STRING"]\n'
-     "}}\n"),
+    "You are a DJN juror.\n"
+    "Assigned role: {role}\n"
+    "Role responsibilities: {role_instruction}\n"
+    "Follow this role while reaching your own conclusion. "
+    "Do not blindly repeat the round context.\n\n"
+    "You MUST output ONLY valid JSON.\n"),
     ("user",
      "User query:\n{query}\n\n"
      "Round context (if any):\n{round_context}\n\n"
      "Now output ONLY the JSON object.")
 ])
+
+def build_role_aware_juror_prompt(
+    role: str,
+) -> ChatPromptTemplate:
+    role_key = (role or "GENERALIST").strip().upper()
+
+    return JUROR_PROMPT.partial(
+        role=role_key,
+        role_instruction=ROLE_INSTRUCTIONS.get(
+            role_key,
+            DEFAULT_ROLE_INSTRUCTION,
+        ),
+    )
 
 JUDGE_PROMPT = ChatPromptTemplate.from_messages([
     ("system",
@@ -453,10 +490,10 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
     for cfg in selected_cfgs:
         juror_id = cfg.name
         model_id = cfg.model
-
+        role = role_map.get(juror_id, "GENERALIST")
         llm = build_llm(cfg)
         chain = (
-            JUROR_PROMPT
+            build_role_aware_juror_prompt(role)
             | llm
             | RunnableLambda(lambda msg, jid=juror_id, mid=model_id: _safe_parse_juror(jid, mid, msg))
         )
@@ -559,6 +596,12 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
                 "juror_id": x.juror_id,
                 "model_id": x.model_id,
                 "role": role_map.get(x.juror_id, ""),
+                "role_instruction": ROLE_INSTRUCTIONS.get(
+                    role_map.get(x.juror_id, "GENERALIST"),
+                    DEFAULT_ROLE_INSTRUCTION,
+                ),
+                "role_instruction_version": ROLE_INSTRUCTIONS_VERSION,
+                "juror_prompt_version": JUROR_PROMPT_VERSION,
                 "verdict_label": (x.output.verdict_label if (x.status.ok and x.output) else ""),
                 "tldr": (x.output.tldr if (x.status.ok and x.output) else ""),
                 "reasoning": (x.output.reasoning if (x.status.ok and x.output) else []),
