@@ -18,6 +18,17 @@ class LLMConfig:
     model: str
     temperature: float = 0.2
     base_url: Optional[str] = None
+    api_key_env: Optional[str] = None
+
+
+def credential_env_for_config(cfg: LLMConfig) -> Optional[str]:
+    if cfg.provider == "gemini":
+        return "GOOGLE_API_KEY"
+    if cfg.provider == "nim":
+        return cfg.api_key_env or "NVIDIA_API_KEY"
+    if cfg.provider == "ollama_cloud":
+        return "OLLAMA_API_KEY"
+    return None
 
 
 def build_llm(cfg: LLMConfig) -> Any:
@@ -69,10 +80,11 @@ def build_llm(cfg: LLMConfig) -> Any:
         )
 
     if cfg.provider == "nim":
-        api_key = os.getenv("NVIDIA_API_KEY")
+        api_key_env = credential_env_for_config(cfg)
+        api_key = os.getenv(api_key_env)
         if not api_key:
             raise RuntimeError(
-                "NVIDIA_API_KEY is missing. Django likely isn't loading .env. "
+                f"{api_key_env} is missing. Django likely isn't loading .env. "
                 "Load dotenv in settings.py or set the env var in your OS."
             )
         base_url = cfg.base_url or os.getenv("NVIDIA_NIM_BASE_URL") or None

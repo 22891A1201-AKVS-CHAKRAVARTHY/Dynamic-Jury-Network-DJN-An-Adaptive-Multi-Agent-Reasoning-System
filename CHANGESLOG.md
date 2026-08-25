@@ -62,8 +62,8 @@ Several models in the initial `djn_engine/pool.py` configuration became unavaila
 | Juror / Ollama Cloud | `qwen3-coder:480b-cloud` | `nemotron-3-ultra:cloud` | Cloud model replaced |
 | Juror / Ollama Cloud | `qwen3-vl:235b-cloud` | `gemma4:31b-cloud` | Cloud model replaced |
 | Juror / Ollama Cloud | `minimax-m2:cloud` | `minimax-m3:cloud` | Model version replaced |
-| Juror / Ollama Cloud | `glm-4.6:cloud` | `glm-5.2:cloud` | Model version replaced |
-| Juror / NVIDIA NIM | `nvidia/nemotron-3-nano-30b-a3b` | `nvidia/nemotron-3-super` | NIM juror replaced |
+| Juror / Ollama Cloud → NVIDIA NIM | `glm-4.6:cloud` | `meta/muse-glimmer-30b` | Replaced with an NVIDIA-hosted Meta model |
+| Juror / NVIDIA NIM | `nvidia/nemotron-3-nano-30b-a3b` | `nvidia/nemotron-3-super-120b-a12b` | NIM juror replaced |
 
 The local DeepSeek juror is configured as follows:
 
@@ -136,4 +136,3 @@ The existing `OLLAMA_BASE_URL` and `OLLAMA_API_KEY` variables remain dedicated t
 - `djn_engine/llms.py` — adds validated local Ollama provider support.
 
 ---
-

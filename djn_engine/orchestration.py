@@ -115,6 +115,7 @@ def _select(config: ExperimentConfig, category: str):
             selected.append(LLMConfig(
                 name=f"J{index}", provider=source.provider, model=source.model,
                 temperature=config.temperature, base_url=source.base_url,
+                api_key_env=source.api_key_env,
             ))
         trace = {
             "selector_version": config.selector_version, "capability_version": config.capability_version,
@@ -127,10 +128,15 @@ def _select(config: ExperimentConfig, category: str):
                 category, k=size, seed=config.seed, return_trace=True,
                 allowed_model_ids=config.model_pool or None,
             )
-            selected = [LLMConfig(
-                name=item["juror_id"], provider=(item.get("provider") or "ollama_cloud").lower(),
-                model=item["model_id"], temperature=config.temperature,
-            ) for item in roster]
+            selected = []
+            for item in roster:
+                source = configured.get(item["model_id"])
+                selected.append(LLMConfig(
+                    name=item["juror_id"], provider=(item.get("provider") or "ollama_cloud").lower(),
+                    model=item["model_id"], temperature=config.temperature,
+                    base_url=getattr(source, "base_url", None),
+                    api_key_env=getattr(source, "api_key_env", None),
+                ))
         except Exception as exc:
             trace = {"fallback_reason": f"SELECTOR_ERROR:{type(exc).__name__}"}
     if (
@@ -156,6 +162,7 @@ def _select(config: ExperimentConfig, category: str):
             selected.append(LLMConfig(
                 name=f"J{len(selected) + 1}", provider=source.provider, model=source.model,
                 temperature=config.temperature, base_url=source.base_url,
+                api_key_env=source.api_key_env,
             ))
             selected_ids.add(model_id)
             if len(selected) == size:

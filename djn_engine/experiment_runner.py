@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List
 
+from .llms import credential_env_for_config
 from .schemas import ExperimentConfig
 from .pool import JUDGE, JURORS
 from evaluation.tasks import TaskSpec, load_tasks
@@ -29,13 +30,24 @@ def build_dry_run(tasks: List[TaskSpec], config: ExperimentConfig, max_calls: in
             known = {item.model for item in candidates}
             missing = [model_id for model_id in config.fixed_roster if model_id not in known]
             raise ValueError(f"Fixed roster contains unconfigured model IDs: {missing}")
-    providers = {item.provider for item in candidates}
+    provider_configs = {provider: [] for provider in {item.provider for item in candidates}}
+    for item in candidates:
+        provider_configs[item.provider].append(item)
     if config.synthesis_mode == "judge" or config.handoff_mode == "structured":
-        providers.add(JUDGE.provider)
-    credential_names = {
-        "gemini": "GOOGLE_API_KEY", "nim": "NVIDIA_API_KEY",
-        "ollama_cloud": "OLLAMA_API_KEY", "ollama": None,
-    }
+        provider_configs.setdefault(JUDGE.provider, []).append(JUDGE)
+
+    provider_validation = []
+    for provider in sorted(provider_configs):
+        credential_names = sorted({
+            name
+            for item in provider_configs[provider]
+            if (name := credential_env_for_config(item))
+        })
+        provider_validation.append({
+            "provider": provider,
+            "credential_variable": ", ".join(credential_names) or None,
+            "credential_present": all(bool(os.getenv(name)) for name in credential_names),
+        })
     return {
         "dry_run": True,
         "task_count": len(tasks),
@@ -44,14 +56,7 @@ def build_dry_run(tasks: List[TaskSpec], config: ExperimentConfig, max_calls: in
         "experiment_config_id": config.config_id,
         "maximum_projected_calls": calls,
         "models": [item.model for item in candidates],
-        "provider_validation": [
-            {
-                "provider": provider,
-                "credential_variable": credential_names.get(provider),
-                "credential_present": bool(os.getenv(credential_names[provider])) if credential_names.get(provider) else True,
-            }
-            for provider in sorted(providers)
-        ],
+        "provider_validation": provider_validation,
         "providers_contacted": False,
     }
 

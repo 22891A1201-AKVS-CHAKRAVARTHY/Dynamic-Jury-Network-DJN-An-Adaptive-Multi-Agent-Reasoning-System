@@ -9,6 +9,7 @@ from djn_engine.pool import JURORS
 
 
 CAPABILITY_PATH = Path(__file__).resolve().parents[3] / "config" / "model_capabilities.json"
+SEEDED_NOTE = "Seeded by seed_llmpool command."
 
 
 def _load_capabilities():
@@ -23,6 +24,20 @@ class Command(BaseCommand):
         registry = _load_capabilities()
         capability_version = registry.get("version", "capabilities-v1")
         registered_models = registry.get("models") or {}
+        configured_model_ids = {
+            getattr(cfg, "model", "") for cfg in JURORS if getattr(cfg, "model", "")
+        }
+
+        # Keep historical rows for foreign-key references, but do not leave models
+        # removed from pool.JURORS eligible for selection or health checks.
+        disabled = LLMPool.objects.filter(
+            notes=SEEDED_NOTE,
+            enabled=True,
+        ).exclude(model_id__in=configured_model_ids).update(
+            enabled=False,
+            updated_at=timezone.now(),
+        )
+
         upserts = 0
         for cfg in JURORS:
             model_id = getattr(cfg, "model", "")
@@ -45,7 +60,7 @@ class Command(BaseCommand):
                     "capabilities_json": capabilities,
                     "capability_version": capability_version,
                     "cost_tier": "",
-                    "notes": "Seeded by seed_llmpool command.",
+                    "notes": SEEDED_NOTE,
                     "created_at": timezone.now(),
                 }
             )
@@ -65,4 +80,5 @@ class Command(BaseCommand):
             upserts += 1
 
         self.stdout.write(self.style.SUCCESS(f"LLMPool seeded/refreshed: {upserts} models"))
-        self.stdout.write("Run: python manage.py seed_llmpool")
+        if disabled:
+            self.stdout.write(self.style.WARNING(f"Disabled stale seeded models: {disabled}"))

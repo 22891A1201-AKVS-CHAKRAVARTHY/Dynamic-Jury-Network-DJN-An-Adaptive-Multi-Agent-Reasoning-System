@@ -5,7 +5,8 @@ from django.utils import timezone
 
 from djn_db.models import LLMPool
 from djn_engine.audit import invoke_with_telemetry
-from djn_engine.llms import LLMConfig, build_llm
+from djn_engine.llms import LLMConfig, build_llm, credential_env_for_config
+from djn_engine.pool import JURORS
 
 
 class Command(BaseCommand):
@@ -18,6 +19,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         rows = list(LLMPool.objects.filter(enabled=True).order_by("model_id"))
+        configured = {cfg.model: cfg for cfg in JURORS}
         if len(rows) > options["max_calls"]:
             raise CommandError(f"Enabled models ({len(rows)}) exceed --max-calls guard.")
         if options["live"] and not options["approve_live"]:
@@ -25,12 +27,20 @@ class Command(BaseCommand):
         report = []
         for row in rows:
             provider = (row.provider or "").lower()
-            required = {"gemini": "GOOGLE_API_KEY", "nim": "NVIDIA_API_KEY", "ollama_cloud": "OLLAMA_API_KEY"}.get(provider)
+            source = configured.get(row.model_id)
+            config = LLMConfig(
+                name=row.name,
+                provider=provider,
+                model=row.model_id,
+                temperature=getattr(source, "temperature", 0.2),
+                base_url=getattr(source, "base_url", None),
+                api_key_env=getattr(source, "api_key_env", None),
+            )
+            required = credential_env_for_config(config)
             status = "CONFIGURED" if not required or os.getenv(required) else "MISSING_CREDENTIAL"
             error = ""
             if options["live"]:
                 try:
-                    config = LLMConfig(name=row.name, provider=provider, model=row.model_id)
                     model = build_llm(config)
                     invoke_with_telemetry(
                         model.invoke, "Reply with OK only.",

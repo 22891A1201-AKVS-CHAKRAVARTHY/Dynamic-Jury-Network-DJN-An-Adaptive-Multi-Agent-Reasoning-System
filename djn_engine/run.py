@@ -455,17 +455,21 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
     role_map = {"J1": "PROPOSER", "J2": "CRITIC", "J3": "REFINER", "J4": "RISK"}
 
     selected_cfgs = []
+    configured_jurors = {cfg.model: cfg for cfg in JURORS}
 
     if select_jury_roster:
         try:
             jury_roster, role_map = select_jury_roster(category, k=4)
             for item in jury_roster:
+                source = configured_jurors.get(item["model_id"])
                 selected_cfgs.append(
                     LLMConfig(
                         name=item["juror_id"],
                         provider=(item.get("provider", "") or "ollama_cloud").strip().lower(),
                         model=item["model_id"],
                         temperature=0.35,
+                        base_url=getattr(source, "base_url", None),
+                        api_key_env=getattr(source, "api_key_env", None),
                     )
                 )
         except Exception:
@@ -482,6 +486,7 @@ def run_djn_once(query: str, category: str = "general") -> Dict[str, Any]:
                     model=cfg.model,
                     temperature=getattr(cfg, "temperature", 0.35),
                     base_url=getattr(cfg, "base_url", None),
+                    api_key_env=getattr(cfg, "api_key_env", None),
                 )
             )
         jury_roster = [{"juror_id": c.name, "model_id": c.model, "provider": c.provider, "name": c.name} for c in selected_cfgs]

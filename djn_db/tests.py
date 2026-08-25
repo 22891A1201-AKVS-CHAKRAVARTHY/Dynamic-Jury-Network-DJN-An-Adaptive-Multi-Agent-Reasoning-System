@@ -1,6 +1,7 @@
 import json
 from unittest.mock import patch
 
+from django.core.management import call_command
 from django.test import TestCase
 from langchain_core.messages import AIMessage
 from langchain_core.runnables import RunnableLambda
@@ -26,6 +27,47 @@ from .stats import apply_feedback, rebuild_all_stats
 
 
 class RolePromptAndAuditTests(TestCase):
+    def test_pool_seed_disables_only_stale_seeded_models(self):
+        stale = LLMPool.objects.create(
+            name="Old NIM model",
+            provider="nim",
+            model_id="nvidia/nemotron-3-super",
+            notes="Seeded by seed_llmpool command.",
+        )
+        stale_glm = LLMPool.objects.create(
+            name="GLM 5.2",
+            provider="ollama_cloud",
+            model_id="glm-5.2:cloud",
+            notes="Seeded by seed_llmpool command.",
+        )
+        custom = LLMPool.objects.create(
+            name="Custom model",
+            provider="custom",
+            model_id="custom:model",
+        )
+
+        call_command("seed_llmpool", verbosity=0)
+
+        stale.refresh_from_db()
+        stale_glm.refresh_from_db()
+        custom.refresh_from_db()
+        self.assertFalse(stale.enabled)
+        self.assertFalse(stale_glm.enabled)
+        self.assertTrue(custom.enabled)
+        self.assertTrue(
+            LLMPool.objects.filter(
+                model_id="nvidia/nemotron-3-super-120b-a12b",
+                enabled=True,
+            ).exists()
+        )
+        self.assertTrue(
+            LLMPool.objects.filter(
+                model_id="meta/muse-glimmer-30b",
+                provider="nim",
+                enabled=True,
+            ).exists()
+        )
+
     def test_all_roles_render_distinct_instructions(self):
         rendered = {}
         for role, instruction in ROLE_INSTRUCTIONS.items():
