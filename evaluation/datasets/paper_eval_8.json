@@ -1,0 +1,108 @@
+{
+  "tasks": [
+    {
+      "task_id": "djn-pilot-01",
+      "dataset": "DJN-Controlled-Pilot-2026",
+      "split": "test",
+      "category": "mathematical",
+      "prompt": "A store lists an item at 1250 rupees and gives a 20 percent discount. Begin the final recommendation with the numerical final price, then explain briefly if needed.",
+      "reference_answer": 1000,
+      "scorer": "numeric_tolerance",
+      "scorer_version": "scorers-v2",
+      "source_url": "",
+      "license": "Author-constructed evaluation item",
+      "metadata": {"tolerance": 0.000001}
+    },
+    {
+      "task_id": "djn-pilot-02",
+      "dataset": "DJN-Controlled-Pilot-2026",
+      "split": "test",
+      "category": "mathematical",
+      "prompt": "A class has 80 students and 35 percent are girls. Begin the final recommendation with the numerical number of girls, then explain briefly if needed.",
+      "reference_answer": 28,
+      "scorer": "numeric_tolerance",
+      "scorer_version": "scorers-v2",
+      "source_url": "",
+      "license": "Author-constructed evaluation item",
+      "metadata": {"tolerance": 0.000001}
+    },
+    {
+      "task_id": "djn-pilot-03",
+      "dataset": "DJN-Controlled-Pilot-2026",
+      "split": "test",
+      "category": "mathematical",
+      "prompt": "Solve 3x + 7 = 31. Begin the final recommendation with the numerical value of x, then explain briefly if needed.",
+      "reference_answer": 8,
+      "scorer": "numeric_tolerance",
+      "scorer_version": "scorers-v2",
+      "source_url": "",
+      "license": "Author-constructed evaluation item",
+      "metadata": {"tolerance": 0.000001}
+    },
+    {
+      "task_id": "djn-pilot-04",
+      "dataset": "DJN-Controlled-Pilot-2026",
+      "split": "test",
+      "category": "mathematical",
+      "prompt": "The five scores are 72, 84, 90, 76, and 88. Begin the final recommendation with their numerical arithmetic mean, then explain briefly if needed.",
+      "reference_answer": 82,
+      "scorer": "numeric_tolerance",
+      "scorer_version": "scorers-v2",
+      "source_url": "",
+      "license": "Author-constructed evaluation item",
+      "metadata": {"tolerance": 0.000001}
+    },
+    {
+      "task_id": "djn-pilot-05",
+      "dataset": "DJN-Controlled-Pilot-2026",
+      "split": "test",
+      "category": "mathematical",
+      "prompt": "A fair six-sided die is rolled once. Begin the final recommendation with the decimal probability of obtaining an even number, then explain briefly if needed.",
+      "reference_answer": 0.5,
+      "scorer": "numeric_tolerance",
+      "scorer_version": "scorers-v2",
+      "source_url": "",
+      "license": "Author-constructed evaluation item",
+      "metadata": {"tolerance": 0.000001}
+    },
+    {
+      "task_id": "djn-pilot-06",
+      "dataset": "DJN-Controlled-Pilot-2026",
+      "split": "test",
+      "category": "mathematical",
+      "prompt": "A car travels 180 km in 3 hours at constant speed. Begin the final recommendation with its numerical average speed in km/h, then explain briefly if needed.",
+      "reference_answer": 60,
+      "scorer": "numeric_tolerance",
+      "scorer_version": "scorers-v2",
+      "source_url": "",
+      "license": "Author-constructed evaluation item",
+      "metadata": {"tolerance": 0.000001}
+    },
+    {
+      "task_id": "djn-pilot-07",
+      "dataset": "DJN-Controlled-Pilot-2026",
+      "split": "test",
+      "category": "mathematical",
+      "prompt": "A laptop costs 50000 rupees. Its price is reduced by 10 percent and then by a further 2000 rupees. Begin the final recommendation with the numerical final price, then explain briefly if needed.",
+      "reference_answer": 43000,
+      "scorer": "numeric_tolerance",
+      "scorer_version": "scorers-v2",
+      "source_url": "",
+      "license": "Author-constructed evaluation item",
+      "metadata": {"tolerance": 0.000001}
+    },
+    {
+      "task_id": "djn-pilot-08",
+      "dataset": "DJN-Controlled-Pilot-2026",
+      "split": "test",
+      "category": "mathematical",
+      "prompt": "The sum of two consecutive integers is 51. Begin the final recommendation with the numerical value of the smaller integer, then explain briefly if needed.",
+      "reference_answer": 25,
+      "scorer": "numeric_tolerance",
+      "scorer_version": "scorers-v2",
+      "source_url": "",
+      "license": "Author-constructed evaluation item",
+      "metadata": {"tolerance": 0.000001}
+    }
+  ]
+}

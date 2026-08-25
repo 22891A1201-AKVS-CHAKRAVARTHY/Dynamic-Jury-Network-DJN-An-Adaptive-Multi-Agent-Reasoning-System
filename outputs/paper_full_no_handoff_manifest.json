@@ -1,0 +1,74 @@
+{
+  "dry_run": false,
+  "task_count": 8,
+  "task_ids": [
+    "djn-pilot-01",
+    "djn-pilot-02",
+    "djn-pilot-03",
+    "djn-pilot-04",
+    "djn-pilot-05",
+    "djn-pilot-06",
+    "djn-pilot-07",
+    "djn-pilot-08"
+  ],
+  "experiment_config": {
+    "mode": "full_djn",
+    "selector_mode": "dynamic",
+    "role_mode": "conditioned",
+    "handoff_mode": "none",
+    "stopping_mode": "dynamic",
+    "synthesis_mode": "judge",
+    "model_pool": [],
+    "fixed_roster": [],
+    "jury_size": 4,
+    "threshold": 0.75,
+    "max_rounds": 3,
+    "min_ok_jurors": 2,
+    "min_improvement": 0.05,
+    "stagnation_rounds": 1,
+    "temperature": 0.35,
+    "max_concurrency": 4,
+    "seed": 0,
+    "max_prompt_tokens": null,
+    "max_completion_tokens": null,
+    "selector_version": "selector-v2",
+    "capability_version": "capabilities-v1",
+    "price_version": "prices-v1"
+  },
+  "experiment_config_id": "085cbd026a522e888fe8582c6fb36a83720b8eb7532f6aaad56cc0ac7eed553c",
+  "maximum_projected_calls": 120,
+  "models": [
+    "gpt-oss:20b-cloud",
+    "gpt-oss:120b-cloud",
+    "deepseek-coder:6.7b",
+    "nemotron-3-ultra:cloud",
+    "gemma4:31b-cloud",
+    "minimax-m3:cloud",
+    "meta/muse-glimmer-30b",
+    "nvidia/nemotron-3-super-120b-a12b"
+  ],
+  "provider_validation": [
+    {
+      "provider": "gemini",
+      "credential_variable": "GOOGLE_API_KEY",
+      "credential_present": true
+    },
+    {
+      "provider": "nim",
+      "credential_variable": "META_API, NVIDIA_API_KEY",
+      "credential_present": true
+    },
+    {
+      "provider": "ollama",
+      "credential_variable": null,
+      "credential_present": true
+    },
+    {
+      "provider": "ollama_cloud",
+      "credential_variable": "OLLAMA_API_KEY",
+      "credential_present": true
+    }
+  ],
+  "providers_contacted": false,
+  "failures": []
+}

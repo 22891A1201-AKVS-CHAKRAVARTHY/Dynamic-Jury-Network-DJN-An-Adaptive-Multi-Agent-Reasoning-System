@@ -1,0 +1,61 @@
+{
+  "dry_run": false,
+  "task_count": 8,
+  "task_ids": [
+    "djn-pilot-01",
+    "djn-pilot-02",
+    "djn-pilot-03",
+    "djn-pilot-04",
+    "djn-pilot-05",
+    "djn-pilot-06",
+    "djn-pilot-07",
+    "djn-pilot-08"
+  ],
+  "experiment_config": {
+    "mode": "single_model",
+    "selector_mode": "fixed",
+    "role_mode": "generic",
+    "handoff_mode": "none",
+    "stopping_mode": "fixed_rounds",
+    "synthesis_mode": "judge",
+    "model_pool": [
+      "gpt-oss:120b-cloud"
+    ],
+    "fixed_roster": [
+      "gpt-oss:120b-cloud"
+    ],
+    "jury_size": 1,
+    "threshold": 0.75,
+    "max_rounds": 1,
+    "min_ok_jurors": 1,
+    "min_improvement": 0.05,
+    "stagnation_rounds": 1,
+    "temperature": 0.35,
+    "max_concurrency": 1,
+    "seed": 0,
+    "max_prompt_tokens": null,
+    "max_completion_tokens": null,
+    "selector_version": "selector-v2",
+    "capability_version": "capabilities-v1",
+    "price_version": "prices-v1"
+  },
+  "experiment_config_id": "45fc7de967fe8c668510230262ec4e3eeadccbba3cda09d603855dffbd80f9c8",
+  "maximum_projected_calls": 16,
+  "models": [
+    "gpt-oss:120b-cloud"
+  ],
+  "provider_validation": [
+    {
+      "provider": "gemini",
+      "credential_variable": "GOOGLE_API_KEY",
+      "credential_present": true
+    },
+    {
+      "provider": "ollama_cloud",
+      "credential_variable": "OLLAMA_API_KEY",
+      "credential_present": true
+    }
+  ],
+  "providers_contacted": false,
+  "failures": []
+}

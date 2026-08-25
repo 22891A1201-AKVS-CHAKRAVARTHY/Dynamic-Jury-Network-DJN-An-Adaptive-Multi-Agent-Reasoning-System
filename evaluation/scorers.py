@@ -4,7 +4,7 @@ import math
 import re
 from typing import Any, Dict
 
-SCORER_VERSION = "scorers-v1"
+SCORER_VERSION = "scorers-v2"
 
 
 def _normalize(value: Any) -> str:
@@ -20,9 +20,21 @@ def score_answer(answer: str, reference: Any, scorer: str, metadata: Dict[str, A
     elif scorer == "numeric_tolerance":
         tolerance = float(metadata.get("tolerance", 1e-6))
         try:
-            observed = float(re.search(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?", answer).group())
-            correct = math.isclose(observed, float(reference), abs_tol=tolerance, rel_tol=tolerance)
-        except (AttributeError, TypeError, ValueError):
+            reference_value = float(reference)
+            matches = re.findall(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?", answer)
+
+            observed_values = [float(value) for value in matches]
+
+            correct = any(
+                math.isclose(
+                    observed,
+                    reference_value,
+                    abs_tol=tolerance,
+                    rel_tol=tolerance,
+                )
+                for observed in observed_values
+            )
+        except (TypeError, ValueError):
             correct = False
     elif scorer == "unit_test":
         # Safe structured checks only; this deliberately does not execute untrusted code.

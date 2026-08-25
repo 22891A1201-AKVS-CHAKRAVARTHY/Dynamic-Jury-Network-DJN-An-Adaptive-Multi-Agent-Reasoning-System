@@ -92,7 +92,7 @@ def build_llm(cfg: LLMConfig) -> Any:
         kwargs = {
             "model": cfg.model,
             "temperature": cfg.temperature,
-            "timeout": timeout_seconds,
+            # "timeout": timeout_seconds,
         }
         if api_key:
             kwargs["api_key"] = api_key

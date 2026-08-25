@@ -1,0 +1,34 @@
+{
+  "mode": "static_jury_one_round",
+  "selector_mode": "fixed",
+  "role_mode": "generic",
+  "handoff_mode": "none",
+  "stopping_mode": "fixed_rounds",
+  "synthesis_mode": "judge",
+  "model_pool": [
+    "gpt-oss:120b-cloud",
+    "deepseek-coder:6.7b",
+    "meta/muse-glimmer-30b",
+    "gemma4:31b-cloud"
+  ],
+  "fixed_roster": [
+    "gpt-oss:120b-cloud",
+    "deepseek-coder:6.7b",
+    "meta/muse-glimmer-30b",
+    "gemma4:31b-cloud"
+  ],
+  "jury_size": 4,
+  "threshold": 0.75,
+  "max_rounds": 1,
+  "min_ok_jurors": 2,
+  "min_improvement": 0.05,
+  "stagnation_rounds": 1,
+  "temperature": 0.35,
+  "max_concurrency": 4,
+  "seed": 0,
+  "max_prompt_tokens": null,
+  "max_completion_tokens": null,
+  "selector_version": "selector-v2",
+  "capability_version": "capabilities-v1",
+  "price_version": "prices-v1"
+}
