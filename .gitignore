@@ -4,6 +4,7 @@ __pycache__/
 *.pyo
 *.pyd
 *.log
+*.egg-info/
 
 # Virtual environment
 .venv/
@@ -12,10 +13,13 @@ env/
 
 # Environment variables
 .env
+.env.*
+!.env.example
 
 # Django
 db.sqlite3
 *.sqlite3
+media/
 
 # Logs
 logs/
@@ -34,15 +38,23 @@ Thumbs.db
 # PyCharm
 .idea/
 
-# Testing
+# Testing / tooling
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
 
 # Coverage
 .coverage
+.coverage.*
+coverage.xml
 htmlcov/
 
-# Migrations cache
+# Editor temporary files
 *.swp
+*.swo
+*~
 
 # Build
 dist/
@@ -51,9 +63,19 @@ build/
 # Temporary
 tmp/
 temp/
-logs/
-
 temp.py
-
-credentials.json
 dir_tree.txt
+
+# Credentials / secrets
+credentials.json
+service-account.json
+service-account*.json
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local DJN analysis / helper artifacts
+CODEBASE_ANALYSIS.md
+DJN-current-source.zip
+create_source_zip.py
